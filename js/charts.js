@@ -10,6 +10,8 @@ const ChartModule = (() => {
     activity:  null,
     edu:       null,
     buildings: null,
+    income:    null,
+    household: null,
   };
 
   /* Formatointiapuri */
@@ -214,7 +216,87 @@ const ChartModule = (() => {
     );
   }
 
-  /* ---------- 4. Sukupuolijakauma (rengaskaavio) ---------- */
+  /* ---------- 4. Tulokehitys (viivakaavio, 2 sarjaa) ---------- */
+  function _renderIncome(years) {
+    _upsert('income', 'chart-income', 'line',
+      {
+        labels: years,
+        datasets: [
+          {
+            label: 'Keskitulot',
+            data: PaavoDB.getSeries('hr_ktu'),
+            borderColor: CONFIG.COLORS.primary,
+            backgroundColor: 'rgba(0,53,128,.08)',
+            fill: false,
+            tension: 0.3,
+            pointRadius: 3,
+            spanGaps: false,
+          },
+          {
+            label: 'Mediaanitulot',
+            data: PaavoDB.getSeries('hr_mtu'),
+            borderColor: CONFIG.COLORS.accent,
+            backgroundColor: 'rgba(0,137,90,.06)',
+            fill: false,
+            tension: 0.3,
+            pointRadius: 3,
+            spanGaps: false,
+          },
+        ],
+      },
+      {
+        ..._baseOpts,
+        plugins: {
+          ..._baseOpts.plugins,
+          legend: {
+            display: true,
+            position: 'top',
+            labels: { boxWidth: 12, font: { size: 11 } },
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => ` ${ctx.dataset.label}: ${fmt(ctx.raw)} €/v`,
+            },
+          },
+        },
+        scales: {
+          x: { ticks: { font: { size: 11 } }, grid: { display: false } },
+          y: {
+            beginAtZero: false,
+            ticks: {
+              font: { size: 11 },
+              callback: v => v.toLocaleString('fi-FI') + ' €',
+            },
+          },
+        },
+      },
+    );
+  }
+
+  /* ---------- 5. Talouksien rakenne (rengaskaavio) ---------- */
+  function _renderHousehold(year) {
+    const codes  = ['te_yks', 'te_laps', 'te_aik', 'te_elak'];
+    const labels = codes.map(c => CONFIG.VAR_LABELS[c] ?? c);
+    const values = codes.map(c => PaavoDB.get(year, c));
+    _upsert('household', 'chart-household', 'doughnut',
+      {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: [
+            CONFIG.COLORS.teal,
+            CONFIG.COLORS.blue,
+            CONFIG.COLORS.orange,
+            CONFIG.COLORS.gray,
+          ],
+          hoverOffset: 4,
+        }],
+      },
+      _doughnutOpts(true),
+    );
+  }
+
+  /* ---------- 6. Sukupuolijakauma (rengaskaavio) ---------- */
   function _renderGender(year) {
     const miehet = PaavoDB.get(year, 'he_miehet');
     const naiset = PaavoDB.get(year, 'he_naiset');
@@ -231,7 +313,7 @@ const ChartModule = (() => {
     );
   }
 
-  /* ---------- 5. Pääasiallinen toiminta (rengaskaavio) ---------- */
+  /* ---------- 7. Pääasiallinen toiminta (rengaskaavio) ---------- */
   function _renderActivity(year) {
     const codes  = ['pt_tyoll', 'pt_tyott', 'pt_elakk', 'pt_muut'];
     const labels = codes.map(c => CONFIG.VAR_LABELS[c] ?? c);
@@ -254,7 +336,7 @@ const ChartModule = (() => {
     );
   }
 
-  /* ---------- 6. Koulutusaste (rengaskaavio) ---------- */
+  /* ---------- 8. Koulutusaste (rengaskaavio) ---------- */
   function _renderEdu(year) {
     const codes  = ['ko_perus', 'ko_koul', 'ko_yliop'];
     const labels = codes.map(c => CONFIG.VAR_LABELS[c] ?? c);
@@ -278,8 +360,7 @@ const ChartModule = (() => {
 
   /* Luo kaikki kaaviot ensimmäisen kerran */
   function init(years) {
-    _renderPopTrend(years);
-    _renderBuildingsTrend(years);
+    _renderPopTrend(years);    _renderIncome(years);    _renderBuildingsTrend(years);
   }
 
   /* Päivitä vuodesta riippuvat kaaviot */
@@ -288,9 +369,10 @@ const ChartModule = (() => {
     _renderGender(year);
     _renderActivity(year);
     _renderEdu(year);
+    _renderHousehold(year);
 
     /* Vuositunnisteet kaavioiden otsikoissa */
-    ['label-age-year', 'label-gender-year', 'label-activity-year', 'label-edu-year'].forEach(id => {
+    ['label-age-year', 'label-gender-year', 'label-activity-year', 'label-edu-year', 'label-household-year'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.textContent = year;
     });

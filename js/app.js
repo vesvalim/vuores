@@ -20,6 +20,8 @@
     asunn: document.getElementById('val-asunn'),
     tyoll: document.getElementById('val-tyoll'),
     tyopy: document.getElementById('val-tyopy'),
+    mtu:   document.getElementById('val-mtu'),
+    asva:  document.getElementById('val-asva'),
   };
 
   /* ── Apufunktiot ── */
@@ -49,6 +51,8 @@
     valEls.asunn.textContent = fmtNum(PaavoDB.get(year, 'ra_asunn'));
     valEls.tyoll.textContent = fmtNum(PaavoDB.get(year, 'pt_tyoll'));
     valEls.tyopy.textContent = fmtNum(PaavoDB.get(year, 'tp_tyopy'));
+    valEls.mtu.textContent   = fmtNum(PaavoDB.get(year, 'hr_mtu'));
+    valEls.asva.textContent  = fmtDec(PaavoDB.get(year, 'te_as_valj'));
   }
 
   /* ── Kaikki vuosi-riippuvaiset päivitykset ── */

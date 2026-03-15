@@ -47,7 +47,7 @@ const CONFIG = Object.freeze({
     ra_ke:     'Rakennuksia yht.',
     ra_raky:   'Asuinrakennuksia',
     ra_asunn:  'Asuntoja',
-    ra_asva:   'Asumisväljyys (m²/as.)',
+    te_as_valj:'Asumisväljyys (m²/as.)',
     ra_as_kpa: 'Asunnon keskim. koko (m²)',
     /* Koulutus (18+) */
     ko_ika18y: 'Väestö 18+',
@@ -61,6 +61,14 @@ const CONFIG = Object.freeze({
     pt_muut:   'Muut',
     /* Toimipaikat */
     tp_tyopy:  'Toimipaikkoja yht.',
+    /* Tulot */
+    hr_ktu:    'Asukkaiden keskitulot (€/v)',
+    hr_mtu:    'Asukkaiden mediaanitulot (€/v)',
+    /* Taloudet */
+    te_yks:    'Yksinasuvat',
+    te_laps:   'Lapsitaloudet',
+    te_aik:    'Aikuistaloudet',
+    te_elak:   'Eläkeläistaloudet',
   },
 
   /* Ikäluokkakoodit järjestyksessä kaavioihin */

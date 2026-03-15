@@ -68,6 +68,14 @@
         <div class="metric-value" id="val-tyopy">&ndash;</div>
         <div class="metric-label">Toimipaikkoja</div>
       </div>
+      <div class="metric-card">
+        <div class="metric-value" id="val-mtu">&ndash;</div>
+        <div class="metric-label">Mediaanitulot (€)</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="val-asva">&ndash;</div>
+        <div class="metric-label">Asumisväljyys (m²/as.)</div>
+      </div>
     </div>
   </header>
 
@@ -92,6 +100,14 @@
         <h3>Väkiluvun kehitys</h3>
         <div class="chart-wrap">
           <canvas id="chart-pop-trend" aria-label="Väkiluvun kehitys vuosittain"></canvas>
+        </div>
+      </div>
+
+      <!-- Income trend -->
+      <div class="chart-card">
+        <h3>Tulokehitys</h3>
+        <div class="chart-wrap">
+          <canvas id="chart-income" aria-label="Asukkaiden tulokehitys vuosittain"></canvas>
         </div>
       </div>
 
@@ -122,6 +138,14 @@
           <div class="chart-wrap chart-wrap--sm">
             <canvas id="chart-edu" aria-label="Koulutusaste 18+"></canvas>
           </div>
+        </div>
+      </div>
+
+      <!-- Household types -->
+      <div class="chart-card">
+        <h3>Talouksien rakenne <span class="year-tag" id="label-household-year"></span></h3>
+        <div class="chart-wrap chart-wrap--sm">
+          <canvas id="chart-household" aria-label="Talouksien rakenne"></canvas>
         </div>
       </div>
 
