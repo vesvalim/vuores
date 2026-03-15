@@ -98,7 +98,7 @@ const CONFIG = Object.freeze({
 
   /* WFS – LIPAS liikuntapaikat */
   LIPAS_WFS_URL:   'https://lipas.fi/geoserver/lipas/ows',
-  LIPAS_WFS_LAYER: 'lipas:liikuntapaikat_piste',
+  LIPAS_WFS_LAYER: 'lipas:lipas_kaikki_pisteet',
 
   /* Väripaletti */
   COLORS: {
