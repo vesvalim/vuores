@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vuores (33870) – Tilastot</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Loading overlay -->
+  <div id="loading-overlay" class="loading-overlay" aria-live="polite">
+    <div class="spinner"></div>
+    <p id="loading-text">Ladataan tilastoja&hellip;</p>
+  </div>
+
+  <!-- Error banner -->
+  <div id="error-banner" class="error-banner hidden" role="alert"></div>
+
+  <!-- ========== HEADER ========== -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-title">
+        <h1>Vuores <span class="postal-badge">33870</span></h1>
+        <p class="subtitle">Postinumeroalueen tilastot &middot; Tampere</p>
+      </div>
+
+      <div class="year-selector" id="year-selector" aria-label="Vuosivalitsin">
+        <span class="year-label-text">Vuosi</span>
+        <input type="range" id="year-range" min="0" max="0" value="0" step="1"
+               aria-label="Valitse tilastovuosi" />
+        <output id="year-display" for="year-range" class="year-display">&ndash;</output>
+        <div class="year-ticks" id="year-ticks"></div>
+      </div>
+    </div>
+
+    <!-- Key metric cards -->
+    <div class="metric-cards">
+      <div class="metric-card">
+        <div class="metric-value" id="val-vakiy">&ndash;</div>
+        <div class="metric-label">Asukkaita</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="val-kika">&ndash;</div>
+        <div class="metric-label">Keski-ikä (v)</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="val-ke">&ndash;</div>
+        <div class="metric-label">Rakennuksia</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="val-asunn">&ndash;</div>
+        <div class="metric-label">Asuntoja</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="val-tyoll">&ndash;</div>
+        <div class="metric-label">Työllistä</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="val-tyopy">&ndash;</div>
+        <div class="metric-label">Toimipaikkoja</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main-content">
+
+    <!-- Map panel -->
+    <section class="map-panel" aria-label="Kartta">
+      <div id="map"></div>
+      <div id="map-info" class="map-info">
+        <strong>Vuores 33870</strong><br />
+        Postinumeroalueen rajaus kartalla.
+        Klikkaa aluetta lisätiedoille.
+      </div>
+    </section>
+
+    <!-- Stats panel -->
+    <section class="stats-panel" aria-label="Tilastot">
+
+      <!-- Population trend -->
+      <div class="chart-card">
+        <h3>Väkiluvun kehitys</h3>
+        <div class="chart-wrap">
+          <canvas id="chart-pop-trend" aria-label="Väkiluvun kehitys vuosittain"></canvas>
+        </div>
+      </div>
+
+      <!-- Age distribution -->
+      <div class="chart-card">
+        <h3>Ikäjakauma <span class="year-tag" id="label-age-year"></span></h3>
+        <div class="chart-wrap chart-wrap--tall">
+          <canvas id="chart-age" aria-label="Ikäjakauma"></canvas>
+        </div>
+      </div>
+
+      <!-- Row: three doughnuts -->
+      <div class="chart-row-3">
+        <div class="chart-card">
+          <h3>Sukupuoli <span class="year-tag" id="label-gender-year"></span></h3>
+          <div class="chart-wrap chart-wrap--sm">
+            <canvas id="chart-gender" aria-label="Sukupuolijakauma"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Toiminta <span class="year-tag" id="label-activity-year"></span></h3>
+          <div class="chart-wrap chart-wrap--sm">
+            <canvas id="chart-activity" aria-label="Pääasiallinen toiminta"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Koulutusaste <span class="year-tag" id="label-edu-year"></span></h3>
+          <div class="chart-wrap chart-wrap--sm">
+            <canvas id="chart-edu" aria-label="Koulutusaste 18+"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buildings trend -->
+      <div class="chart-card">
+        <h3>Rakennusten ja asuntojen kehitys</h3>
+        <div class="chart-wrap">
+          <canvas id="chart-buildings" aria-label="Rakennusten kehitys"></canvas>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="site-footer">
+    <p>
+      Lähde:
+      <a href="https://www.stat.fi/fi/tilastot/postinumeroalueittainen-avoin-tieto"
+         target="_blank" rel="noopener noreferrer">Tilastokeskus, Postinumeroalueittainen avoin tieto (PAAVO)</a>,
+      lisenssi <abbr title="Creative Commons Nimeä 4.0">CC BY 4.0</abbr>.
+      Aluerajaukset: Tilastokeskus / <a href="https://geo.stat.fi" target="_blank" rel="noopener noreferrer">geo.stat.fi</a>,
+      CC BY 4.0. Taustakartta: &copy; <a href="https://www.openstreetmap.org/copyright"
+         target="_blank" rel="noopener noreferrer">OpenStreetMap</a>-tekijät.
+    </p>
+  </footer>
+
+  <!-- Scripts (order matters: config → paavo → map → charts → app) -->
+  <script src="js/config.js"></script>
+  <script src="js/paavo.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

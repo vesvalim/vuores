@@ -1,0 +1,322 @@
+/* ============================================================
+   Vuores (33870) – Tilastosivusto
+   ============================================================ */
+
+/* ---------- Design tokens ---------- */
+:root {
+  --c-primary:   #003580;   /* Suomen sininen */
+  --c-primary-d: #002460;
+  --c-accent:    #00895a;   /* Vuoreksen vihreä */
+  --c-accent-l:  #e6f4ef;
+  --c-bg:        #f4f6f9;
+  --c-surface:   #ffffff;
+  --c-border:    #dce2ea;
+  --c-text:      #1a2332;
+  --c-text-2:    #4a566a;
+  --c-error:     #c0392b;
+
+  --shadow-sm:   0 1px 3px rgba(0,0,0,.10);
+  --shadow-md:   0 3px 10px rgba(0,0,0,.12);
+  --radius:      8px;
+  --header-h:    auto;
+  --font:        system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* ---------- Reset & base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0;
+  height: 100%;
+  font-family: var(--font);
+  font-size: 15px;
+  color: var(--c-text);
+  background: var(--c-bg);
+}
+
+a { color: var(--c-accent); }
+a:hover { color: var(--c-primary); }
+
+h1, h2, h3 {
+  margin: 0 0 .5rem;
+  line-height: 1.2;
+}
+h3 {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--c-text-2);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* ---------- Loading overlay ---------- */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 20, 60, .75);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  color: #fff;
+  gap: .8rem;
+  transition: opacity .3s;
+}
+.loading-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.spinner {
+  width: 46px; height: 46px;
+  border: 4px solid rgba(255,255,255,.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Error banner ---------- */
+.error-banner {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: var(--c-error);
+  color: #fff;
+  padding: .6rem 1.2rem;
+  font-size: .9rem;
+  z-index: 9998;
+  text-align: center;
+}
+.hidden { display: none !important; }
+
+/* ---------- Site header ---------- */
+.site-header {
+  background: var(--c-primary);
+  color: #fff;
+  padding: .75rem 1.25rem .6rem;
+  box-shadow: var(--shadow-md);
+  position: sticky;
+  top: 0;
+  z-index: 900;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: .55rem;
+}
+
+.header-title h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+.postal-badge {
+  display: inline-block;
+  background: rgba(255,255,255,.18);
+  border-radius: 4px;
+  padding: 0 .4em;
+  font-size: .85em;
+  font-weight: 600;
+  vertical-align: middle;
+  margin-left: .25em;
+}
+.subtitle {
+  margin: .15rem 0 0;
+  font-size: .8rem;
+  opacity: .75;
+}
+
+/* Year selector */
+.year-selector {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+.year-label-text {
+  font-size: .8rem;
+  opacity: .8;
+  white-space: nowrap;
+}
+#year-range {
+  width: 220px;
+  accent-color: #fff;
+  cursor: pointer;
+}
+.year-display {
+  font-size: 1.1rem;
+  font-weight: 700;
+  min-width: 3rem;
+  text-align: center;
+  background: rgba(255,255,255,.15);
+  border-radius: 4px;
+  padding: .1em .4em;
+}
+.year-ticks {
+  display: flex;
+  justify-content: space-between;
+  width: 220px;
+  font-size: .65rem;
+  opacity: .65;
+  margin-top: -4px;
+  pointer-events: none;
+}
+
+/* Metric cards */
+.metric-cards {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+.metric-card {
+  flex: 1 1 80px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: var(--radius);
+  padding: .45rem .7rem;
+  text-align: center;
+  min-width: 70px;
+}
+.metric-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.metric-label {
+  font-size: .68rem;
+  opacity: .75;
+  margin-top: .15rem;
+  white-space: nowrap;
+}
+
+/* ---------- Main layout ---------- */
+.main-content {
+  display: flex;
+  height: calc(100vh - var(--header-height, 142px));
+  overflow: hidden;
+}
+
+/* Map panel */
+.map-panel {
+  position: relative;
+  flex: 0 0 58%;
+  height: 100%;
+}
+#map {
+  width: 100%; height: 100%;
+}
+
+.map-info {
+  position: absolute;
+  bottom: 1rem; left: 1rem;
+  background: rgba(255,255,255,.92);
+  border-radius: var(--radius);
+  padding: .5rem .75rem;
+  font-size: .78rem;
+  color: var(--c-text-2);
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+  max-width: 220px;
+  line-height: 1.4;
+}
+
+/* Stats panel */
+.stats-panel {
+  flex: 1 1 0;
+  overflow-y: auto;
+  padding: .9rem 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+  background: var(--c-bg);
+}
+
+/* Chart cards */
+.chart-card {
+  background: var(--c-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  padding: .85rem 1rem .9rem;
+}
+.chart-wrap {
+  position: relative;
+  height: 180px;
+}
+.chart-wrap--tall { height: 220px; }
+.chart-wrap--sm   { height: 160px; }
+
+.chart-row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .75rem;
+}
+
+/* Year tag inside heading */
+.year-tag {
+  font-weight: 400;
+  font-size: .75rem;
+  color: var(--c-accent);
+  margin-left: .3em;
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  background: var(--c-primary-d);
+  color: rgba(255,255,255,.65);
+  font-size: .75rem;
+  padding: .55rem 1.25rem;
+  line-height: 1.55;
+}
+.site-footer a { color: rgba(255,255,255,.8); }
+.site-footer a:hover { color: #fff; }
+
+/* ---------- Leaflet popup tweaks ---------- */
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+.popup-title {
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--c-primary);
+  margin-bottom: .4rem;
+}
+.popup-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .2rem .8rem;
+  font-size: .8rem;
+}
+.popup-label { color: var(--c-text-2); }
+.popup-val   { font-weight: 600; text-align: right; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .main-content {
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+  }
+  .map-panel {
+    flex: none;
+    height: 40vh;
+    min-height: 280px;
+  }
+  .stats-panel {
+    overflow: visible;
+    height: auto;
+    padding: .75rem;
+  }
+  #year-range, .year-ticks { width: 160px; }
+}
+
+@media (max-width: 600px) {
+  .chart-row-3 { grid-template-columns: 1fr; }
+  .metric-card { flex: 1 1 45%; }
+  .header-inner { gap: .75rem; }
+  #year-range, .year-ticks { width: 130px; }
+}
