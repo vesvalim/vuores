@@ -6,7 +6,7 @@ const GridMap = (() => {
   let _gridLayer     = null;
   let _boundaryLayer = null;
   let _features      = [];
-  let _currentVar    = 'he_vakiy';
+  let _currentVar    = 'vaesto';
   let _currentScheme = 'blues';
   let _legendControl = null;
   let _initialized   = false;
@@ -39,8 +39,14 @@ const GridMap = (() => {
     return [sx / ring.length, sy / ring.length];
   }
 
-  function _inBoundary(feature, ring) {
-    try { return _pip(_centroid(feature), ring); } catch { return false; }
+  function _intersectsBoundary(feature, ring) {
+    try {
+      const coords = feature.geometry.coordinates[0];
+      if (_pip(_centroid(feature), ring)) return true;
+      for (const pt of coords) { if (_pip(pt, ring))   return true; }
+      for (const pt of ring)   { if (_pip(pt, coords)) return true; }
+      return false;
+    } catch { return false; }
   }
 
   /* ── WFS URL-rakentaja ── */
@@ -104,23 +110,17 @@ const GridMap = (() => {
 
   /* ── Popup ── */
   function _popupContent(p) {
-    const fmt  = v => (v == null || v < 0) ? '–' : Number(v).toLocaleString('fi-FI');
-    const fmtF = v => (v == null || v < 0) ? '–' : Number(v).toFixed(1);
-    const id   = p.grd_id ?? p.euref_id ?? p.id ?? '–';
+    const fmt = v => (v == null || v < 0) ? '–' : Number(v).toLocaleString('fi-FI');
+    const id  = p.grd_id ?? p.euref_id ?? p.id ?? '–';
     return `
       <div class="popup-title">Ruutu&nbsp;${id}</div>
       <div class="popup-grid">
-        <span class="popup-label">Asukkaita</span>     <span class="popup-val">${fmt(p.he_vakiy)}</span>
-        <span class="popup-label">– Miehiä</span>      <span class="popup-val">${fmt(p.he_miehet)}</span>
-        <span class="popup-label">– Naisia</span>      <span class="popup-val">${fmt(p.he_naiset)}</span>
-        <span class="popup-label">Keski-ikä</span>     <span class="popup-val">${fmtF(p.he_kika)}&nbsp;v</span>
-        <span class="popup-label">Rakennuksia</span>   <span class="popup-val">${fmt(p.ra_ke)}</span>
-        <span class="popup-label">Asuntoja</span>      <span class="popup-val">${fmt(p.ra_asunn)}</span>
-        <span class="popup-label">Asuinrak.</span>     <span class="popup-val">${fmt(p.ra_raky)}</span>
-        <span class="popup-label">Työlliset</span>     <span class="popup-val">${fmt(p.pt_tyoll)}</span>
-        <span class="popup-label">Työttömät</span>     <span class="popup-val">${fmt(p.pt_tyott)}</span>
-        <span class="popup-label">Korkea-aste</span>   <span class="popup-val">${fmt(p.ko_yliop)}</span>
-        <span class="popup-label">Toimipaikkoja</span> <span class="popup-val">${fmt(p.tp_tyopy)}</span>
+        <span class="popup-label">Asukkaita</span>  <span class="popup-val">${fmt(p.vaesto)}</span>
+        <span class="popup-label">– Miehiä</span>   <span class="popup-val">${fmt(p.miehet)}</span>
+        <span class="popup-label">– Naisia</span>   <span class="popup-val">${fmt(p.naiset)}</span>
+        <span class="popup-label">0–14 v</span>     <span class="popup-val">${fmt(p.ika_0_14)}</span>
+        <span class="popup-label">15–64 v</span>    <span class="popup-val">${fmt(p.ika_15_64)}</span>
+        <span class="popup-label">65+ v</span>      <span class="popup-val">${fmt(p.ika_65_)}</span>
       </div>`;
   }
 
@@ -178,7 +178,7 @@ const GridMap = (() => {
     }
     const total = vals.reduce((a, b) => a + b, 0);
     const mean  = total / vals.length;
-    const isAbs = !['kika', 'asva', 'kpa'].some(s => _currentVar.includes(s));
+    const isAbs = true;
     const fmtN  = v => Math.round(v).toLocaleString('fi-FI');
     el.innerHTML = `
       <div class="grid-stats-title">${_varLabel(_currentVar)}</div>
@@ -260,7 +260,7 @@ const GridMap = (() => {
              : null;
       }
       _features = ring
-        ? (geojson.features ?? []).filter(f => _inBoundary(f, ring))
+        ? (geojson.features ?? []).filter(f => _intersectsBoundary(f, ring))
         : (geojson.features ?? []);
       console.info(`GridMap: ${_features.length} ruutua postinumeroalueen sisällä`);
 
