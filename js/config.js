@@ -79,6 +79,45 @@ const CONFIG = Object.freeze({
     'he_80_84','he_85_',
   ],
 
+  /* WFS – 1 km väestöruudukko (2024) */
+  GRID_WFS_URL:   'https://geo.stat.fi/geoserver/vaestoruutu/ows',
+  GRID_WFS_LAYER: 'vaestoruutu:vaki2024_1km',
+
+  GRID_VAR_GROUPS: [
+    { group: 'Väestö', vars: [
+      { code: 'he_vakiy',  label: 'Asukkaat yht.' },
+      { code: 'he_miehet', label: 'Miehet' },
+      { code: 'he_naiset', label: 'Naiset' },
+      { code: 'he_kika',   label: 'Keski-ikä' },
+    ]},
+    { group: 'Ikäluokat', vars: [
+      { code: 'he_0_2',   label: '0–2 v' },
+      { code: 'he_3_6',   label: '3–6 v' },
+      { code: 'he_7_12',  label: '7–12 v' },
+      { code: 'he_13_15', label: '13–15 v' },
+      { code: 'he_20_24', label: '20–24 v' },
+      { code: 'he_30_34', label: '30–34 v' },
+      { code: 'he_45_49', label: '45–49 v' },
+      { code: 'he_65_69', label: '65–69 v' },
+      { code: 'he_85_',   label: '85 v+' },
+    ]},
+    { group: 'Rakennukset', vars: [
+      { code: 'ra_ke',    label: 'Rakennuksia' },
+      { code: 'ra_raky',  label: 'Asuinrakennuksia' },
+      { code: 'ra_asunn', label: 'Asuntoja' },
+    ]},
+    { group: 'Koulutus (18+)', vars: [
+      { code: 'ko_perus', label: 'Perusaste' },
+      { code: 'ko_koul',  label: 'Toinen aste' },
+      { code: 'ko_yliop', label: 'Korkea-aste' },
+    ]},
+    { group: 'Toiminta', vars: [
+      { code: 'pt_tyoll', label: 'Työlliset' },
+      { code: 'pt_tyott', label: 'Työttömät' },
+      { code: 'pt_elakk', label: 'Eläkeläiset' },
+    ]},
+  ],
+
   /* Väripaletti */
   COLORS: {
     primary:  '#003580',

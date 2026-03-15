@@ -4,6 +4,7 @@
 (async () => {
   /* ── Tilaobjekti ── */
   const state = { years: [], selectedYear: null };
+  let _gridInitialized = false;
 
   /* ── DOM-viitteet ── */
   const loadingOverlay = document.getElementById('loading-overlay');
@@ -86,10 +87,12 @@
     });
   }
 
-  /* ── Lasketaan otsikon korkeus CSS-muuttujaan ── */
+  /* ── Lasketaan otsikon ja välilehtien korkeus CSS-muuttujiin ── */
   function measureHeaderHeight() {
     const h = document.querySelector('.site-header')?.offsetHeight ?? 142;
     document.documentElement.style.setProperty('--header-height', `${h}px`);
+    const t = document.querySelector('.tab-nav')?.offsetHeight ?? 42;
+    document.documentElement.style.setProperty('--tab-height', `${t}px`);
   }
 
   /* ════════════════════════════════════════════════════════
@@ -118,6 +121,24 @@
 
     measureHeaderHeight();
     window.addEventListener('resize', measureHeaderHeight);
+
+    /* ── Välilehtien vaihto ── */
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b =>
+          b.classList.toggle('active', b.dataset.tab === tab));
+        document.querySelectorAll('.tab-panel').forEach(p =>
+          p.classList.toggle('active', p.id === `tab-${tab}`));
+        if (tab === 'grid' && !_gridInitialized) {
+          _gridInitialized = true;
+          GridMap.init(MapModule.getBounds(), MapModule.getBoundaryFeature());
+        }
+        if (tab === 'grid') {
+          requestAnimationFrame(() => GridMap.invalidateSize());
+        }
+      });
+    });
 
   } catch (err) {
     console.error('App init error:', err);

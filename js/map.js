@@ -4,6 +4,7 @@
 const MapModule = (() => {
   let _map         = null;
   let _boundary    = null;   // postinumerorajaus
+  let _rawGeoJSON  = null;   // raakamuoto gridmappia varten
   let _gridLayer   = null;   // rakennukset
   let _legend      = null;   // selite
   let _popup       = null;   // avoin popup
@@ -178,6 +179,7 @@ const MapModule = (() => {
         return;
       }
 
+      _rawGeoJSON = geojson;
       const bounds = L.geoJSON(geojson).getBounds();
 
       /* 1. OSM-rakennukset ensin (kartan alemmalle tasolle) */
@@ -252,5 +254,8 @@ const MapModule = (() => {
     }
   }
 
-  return { init, updateYear };
+  function getBounds()          { return _boundary ? _boundary.getBounds() : null; }
+  function getBoundaryFeature() { return _rawGeoJSON?.features?.[0] ?? null; }
+
+  return { init, updateYear, getBounds, getBoundaryFeature };
 })();

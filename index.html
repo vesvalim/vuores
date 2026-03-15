@@ -79,6 +79,14 @@
     </div>
   </header>
 
+  <!-- ========== TABS ========== -->
+  <nav class="tab-nav" aria-label="Näkymävalinnat">
+    <button class="tab-btn active" data-tab="paavo">Alue &amp; Tilastot</button>
+    <button class="tab-btn" data-tab="grid">Väestöruudukko 1&nbsp;km²</button>
+  </nav>
+
+  <!-- ========== TAB: PAAVO ========== -->
+  <div id="tab-paavo" class="tab-panel active">
   <!-- ========== MAIN ========== -->
   <main class="main-content">
 
@@ -159,6 +167,49 @@
 
     </section>
   </main>
+  </div><!-- /tab-paavo -->
+
+  <!-- ========== TAB: GRID ========== -->
+  <div id="tab-grid" class="tab-panel">
+    <div class="grid-layout">
+      <div class="grid-map-panel">
+        <div id="grid-map"></div>
+      </div>
+      <aside class="grid-ctrl">
+        <div class="ctrl-section">
+          <div class="ctrl-section-title">Näytettävä tieto</div>
+          <div id="grid-var-selector"><p class="stats-empty">Ladataan&hellip;</p></div>
+        </div>
+        <div class="ctrl-section">
+          <div class="ctrl-section-title">Väripaletti</div>
+          <div class="scheme-row">
+            <button class="scheme-btn active" data-scheme="blues">
+              <span class="scheme-preview" style="background:linear-gradient(to right,#eff3ff,#08306b)"></span>Sininen
+            </button>
+            <button class="scheme-btn" data-scheme="reds">
+              <span class="scheme-preview" style="background:linear-gradient(to right,#fee5d9,#99000d)"></span>Punainen
+            </button>
+            <button class="scheme-btn" data-scheme="greens">
+              <span class="scheme-preview" style="background:linear-gradient(to right,#edf8e9,#005a32)"></span>Vihreä
+            </button>
+            <button class="scheme-btn" data-scheme="heat">
+              <span class="scheme-preview" style="background:linear-gradient(to right,#ffffcc,#bd0026)"></span>Lämpö
+            </button>
+            <button class="scheme-btn" data-scheme="purples">
+              <span class="scheme-preview" style="background:linear-gradient(to right,#f2f0f7,#4a1486)"></span>Violetti
+            </button>
+          </div>
+        </div>
+        <div class="ctrl-section">
+          <div class="ctrl-section-title">Tilastot</div>
+          <div id="grid-stats-box"><p class="stats-empty">Avaa välilehti ladataksesi ruutudata.</p></div>
+        </div>
+        <div class="ctrl-attribution">
+          Tilastokeskus / vaestoruutu 2024, CC BY 4.0
+        </div>
+      </aside>
+    </div>
+  </div><!-- /tab-grid -->
 
   <!-- ========== FOOTER ========== -->
   <footer class="site-footer">
@@ -178,6 +229,7 @@
   <script src="js/paavo.js"></script>
   <script src="js/map.js"></script>
   <script src="js/charts.js"></script>
+  <script src="js/gridmap.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
