@@ -191,6 +191,14 @@ const LiikuntaMap = (() => {
     if (_initialized) return;
     _initialized = true;
 
+    try {
+
+    /* Varmista kontin korkeus ennen Leaflet-alustusta */
+    const container = document.getElementById('liikunta-map');
+    if (!container) { console.error('LiikuntaMap: #liikunta-map ei löydy'); return; }
+    if (!container.clientHeight) container.style.height = '500px';
+    console.log('LiikuntaMap: kontin korkeus', container.clientHeight, 'px');
+
     _map = L.map('liikunta-map', { center: CONFIG.MAP_CENTER, zoom: CONFIG.MAP_ZOOM });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -215,57 +223,56 @@ const LiikuntaMap = (() => {
     _map.invalidateSize();
     setTimeout(() => _map.invalidateSize(), 200);
 
-    try {
-      const bounds = llBounds ?? _borderLayer?.getBounds() ?? _map.getBounds();
-      const res    = await fetch(_buildUrl(bounds));
-      if (!res.ok) throw new Error(`LIPAS WFS HTTP ${res.status}`);
+    const bounds = llBounds ?? _borderLayer?.getBounds() ?? _map.getBounds();
+    const res    = await fetch(_buildUrl(bounds));
+    if (!res.ok) throw new Error(`LIPAS WFS HTTP ${res.status}`);
 
-      /* Lue tekstitä ensin – palvelin saattaa palauttaa XML-virhettä JSONin sijaan */
-      const text = await res.text();
-      if (text.trimStart().startsWith('<')) {
-        const m = text.match(/<(?:ows:)?ExceptionText[^>]*>([^<]+)</);
-        const hint = m ? m[1].trim()
-          : 'Palvelin palautti XML:ää (kerrosnimi virheellinen? Tarkista LIPAS_WFS_LAYER config.js:stä)';
-        console.error('LiikuntaMap XML-vastaus:', text.slice(0, 400));
-        throw new Error(hint);
-      }
-      const data = JSON.parse(text);
+    /* Lue tekstitä ensin – palvelin saattaa palauttaa XML-virhettä JSONin sijaan */
+    const text = await res.text();
+    if (text.trimStart().startsWith('<')) {
+      const m = text.match(/<(?:ows:)?ExceptionText[^>]*>([^<]+)</);
+      const hint = m ? m[1].trim()
+        : 'Palvelin palautti XML:ää (kerrosnimi virheellinen? Tarkista LIPAS_WFS_LAYER config.js:stä)';
+      console.error('LiikuntaMap XML-vastaus:', text.slice(0, 400));
+      throw new Error(hint);
+    }
+    const data = JSON.parse(text);
 
-      /* Normalisoi property-avaimet pieniksi */
-      const norm = f => ({
-        ...f,
-        properties: Object.fromEntries(
-          Object.entries(f.properties ?? {}).map(([k, v]) => [k.toLowerCase(), v])
-        ),
-      });
-      const all = (data.features ?? []).map(norm);
-      console.info(`LiikuntaMap: ${all.length} kohdetta WFS:stä`);
-      if (all.length) console.debug('LiikuntaMap esim.:', all[0].properties);
+    /* Normalisoi property-avaimet pieniksi */
+    const norm = f => ({
+      ...f,
+      properties: Object.fromEntries(
+        Object.entries(f.properties ?? {}).map(([k, v]) => [k.toLowerCase(), v])
+      ),
+    });
+    const all = (data.features ?? []).map(norm);
+    console.info(`LiikuntaMap: ${all.length} kohdetta WFS:stä`);
+    if (all.length) console.debug('LiikuntaMap esim.:', all[0].properties);
 
-      /* Suodata Vuoreksen postinumeroalueelle */
-      let ring = null;
-      if (boundaryFeature?.geometry) {
-        const g = boundaryFeature.geometry;
-        ring = g.type === 'Polygon'      ? g.coordinates[0]
-             : g.type === 'MultiPolygon' ? g.coordinates[0][0]
-             : null;
-      }
-      _features = ring
-        ? all.filter(f => { const c = _coords(f); return c ? _pip(c, ring) : false; })
-        : all;
-      console.info(`LiikuntaMap: ${_features.length} liikuntapaikkaa Vuoreksen sisällä`);
+    /* Suodata Vuoreksen postinumeroalueelle */
+    let ring = null;
+    if (boundaryFeature?.geometry) {
+      const g = boundaryFeature.geometry;
+      ring = g.type === 'Polygon'      ? g.coordinates[0]
+           : g.type === 'MultiPolygon' ? g.coordinates[0][0]
+           : null;
+    }
+    _features = ring
+      ? all.filter(f => { const c = _coords(f); return c ? _pip(c, ring) : false; })
+      : all;
+    console.info(`LiikuntaMap: ${_features.length} liikuntapaikkaa Vuoreksen sisällä`);
 
-      if (!_features.length) {
-        const el = document.getElementById('liikunta-cats');
-        if (el) el.innerHTML = '<p class="stats-empty">Liikuntapaikkoja ei löytynyt alueelta.</p>';
-        return;
-      }
+    if (!_features.length) {
+      const el = document.getElementById('liikunta-cats');
+      if (el) el.innerHTML = '<p class="stats-empty">Liikuntapaikkoja ei löytynyt alueelta.</p>';
+      return;
+    }
 
-      _populateLayers();
-      _buildControls();
+    _populateLayers();
+    _buildControls();
 
     } catch (err) {
-      console.error('LiikuntaMap:', err);
+      console.error('LiikuntaMap init error:', err);
       const el = document.getElementById('liikunta-cats');
       if (el) el.innerHTML =
         `<p class="stats-empty" style="color:var(--c-error)">Virhe: ${err.message}</p>`;
