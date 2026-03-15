@@ -133,14 +133,14 @@
           p.classList.toggle('active', p.id === `tab-${tab}`));
         if (tab === 'grid' && !_gridInitialized) {
           _gridInitialized = true;
-          GridMap.init(MapModule.getBounds(), MapModule.getBoundaryFeature());
+          setTimeout(() => GridMap.init(MapModule.getBounds(), MapModule.getBoundaryFeature()), 50);
         }
         if (tab === 'grid') {
           setTimeout(() => GridMap.invalidateSize(), 300);
         }
         if (tab === 'liikunta' && !_liikuntaInitialized) {
           _liikuntaInitialized = true;
-          LiikuntaMap.init(MapModule.getBounds(), MapModule.getBoundaryFeature());
+          setTimeout(() => LiikuntaMap.init(MapModule.getBounds(), MapModule.getBoundaryFeature()), 50);
         }
         if (tab === 'liikunta') {
           setTimeout(() => LiikuntaMap.invalidateSize(), 300);
