@@ -259,10 +259,18 @@ const GridMap = (() => {
              : g.type === 'MultiPolygon' ? g.coordinates[0][0]
              : null;
       }
+      const normalise = f => ({
+        ...f,
+        properties: Object.fromEntries(
+          Object.entries(f.properties ?? {}).map(([k, v]) => [k.toLowerCase(), v])
+        ),
+      });
+      const all = (geojson.features ?? []).map(normalise);
       _features = ring
-        ? (geojson.features ?? []).filter(f => _intersectsBoundary(f, ring))
-        : (geojson.features ?? []);
+        ? all.filter(f => _intersectsBoundary(f, ring))
+        : all;
       console.info(`GridMap: ${_features.length} ruutua postinumeroalueen sisällä`);
+      if (_features.length) console.debug('GridMap: esim. properties:', _features[0].properties);
 
       _renderGrid();
       _renderVarControls();
