@@ -1,11 +1,11 @@
-/* js/map.js – Leaflet-kartta, WFS-postinumerorajaus ja tilastoruudut */
+/* js/map.js – Leaflet-kartta, WFS-postinumerorajaus ja OSM-rakennukset */
 'use strict';
 
 const MapModule = (() => {
   let _map         = null;
   let _boundary    = null;   // postinumerorajaus
-  let _gridLayer   = null;   // tilastoruudut
-  let _legend      = null;   // ruuuruutuselite
+  let _gridLayer   = null;   // rakennukset
+  let _legend      = null;   // selite
   let _popup       = null;   // avoin popup
   let _currentYear = null;
 
@@ -23,68 +23,108 @@ const MapModule = (() => {
     return url.toString();
   }
 
-  /* Hae tilastoruudut WFS-aluerajaukselta – kokeile eri vuosia */
-  async function _fetchGridData(bounds) {
-    const pad  = 0.005;
-    const w = (bounds.getWest()  - pad).toFixed(6);
+  /* Hae rakennukset Overpass API:sta (OpenStreetMap) */
+  async function _fetchBuildings(bounds) {
+    const pad = 0.001;
     const s = (bounds.getSouth() - pad).toFixed(6);
-    const e = (bounds.getEast()  + pad).toFixed(6);
+    const w = (bounds.getWest()  - pad).toFixed(6);
     const n = (bounds.getNorth() + pad).toFixed(6);
-    const bbox = `${w},${s},${e},${n},CRS:84`;
-    console.log(`MapModule: _fetchGridData bbox=${bbox}`);
+    const e = (bounds.getEast()  + pad).toFixed(6);
+    // Overpass bbox-järjestys: etelä,länsi,pohjoinen,itä
+    const query = `[out:json][bbox:${s},${w},${n},${e}];(way[building];);out geom;`;
+    console.log(`MapModule: haetaan rakennukset Overpass API:sta bbox=${s},${w},${n},${e}`);
+    const r = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: query,
+    });
+    if (!r.ok) throw new Error(`Overpass HTTP ${r.status}`);
+    const data = await r.json();
+    const elems = data.elements ?? [];
+    console.info(`MapModule: ${elems.length} rakennusta löytyi`);
+    return _osmToGeoJSON(elems);
+  }
 
-    for (const year of ['2024', '2023', '2022', '2021', '2020']) {
-      const layerName = `vaestoruutu:vaki${year}_1km`;
-      // Rakenna URL ilman searchParams-enkoodausta BBOX-parametrille
-      const base = `${CONFIG.WFS_URL}?service=WFS&version=2.0.0&request=GetFeature` +
-        `&typeNames=${encodeURIComponent(layerName)}&outputFormat=application%2Fjson` +
-        `&srsName=CRS%3A84&BBOX=${bbox}`;
-      console.log(`MapModule: haetaan ${layerName}`);
-      try {
-        const r = await fetch(base);
-        if (!r.ok) {
-          console.warn(`MapModule: ${layerName} — HTTP ${r.status}, kokeillaan seuraavaa vuotta`);
-          continue;
-        }
-        const gj = await r.json();
-        if (gj.features?.length) {
-          console.info(`MapModule: grid ${layerName} — ${gj.features.length} ruutua löytyi`);
-          return { gj, year, res: '1km' };
-        }
-        console.debug(`MapModule: ${layerName} — ei ruutuja bbox:ssä`);
-      } catch (e2) {
-        console.warn(`MapModule: ${layerName} — virhe:`, e2.message);
+  /* Muunna Overpass-elementit GeoJSON:ksi */
+  function _osmToGeoJSON(elements) {
+    const features = [];
+    for (const el of elements) {
+      if (el.type !== 'way' || !el.geometry?.length) continue;
+      const coords = el.geometry.map(p => [p.lon, p.lat]);
+      // Sulje rengas tarvittaessa
+      if (coords[0][0] !== coords[coords.length - 1][0] ||
+          coords[0][1] !== coords[coords.length - 1][1]) {
+        coords.push(coords[0]);
       }
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: [coords] },
+        properties: el.tags ?? {},
+      });
     }
-    console.warn('MapModule: ruututietoja ei löytynyt yhdelläkään vuodella');
-    return null;
+    return { type: 'FeatureCollection', features };
   }
 
-  /* Ruudun väri ColorBrewer YlGnBu -asteikolla väkiluvun mukaan */
-  function _cellColor(pop, maxPop) {
-    if (!pop || pop <= 0) return null;   // käyttää fillOpacity: 0 tyhjille
-    const t  = Math.sqrt(Math.min(pop / maxPop, 1));
-    const cs = [[255,255,204],[161,218,180],[65,182,196],[44,127,184],[37,52,148]];
-    const p  = t * (cs.length - 1);
-    const lo = Math.floor(p), hi = Math.min(lo + 1, cs.length - 1);
-    const f  = p - lo;
-    const [rv, gv, bv] = [0, 1, 2].map(i => Math.round(cs[lo][i] + (cs[hi][i] - cs[lo][i]) * f));
-    return `rgb(${rv},${gv},${bv})`;
+  /* Rakennuksen täyttöväri tyypin mukaan */
+  function _buildingColor(type) {
+    switch (type) {
+      case 'apartments':
+      case 'flat':
+      case 'residential': return '#3b82f6';          // sininen – kerrostalo
+      case 'house':
+      case 'detached':
+      case 'semidetached_house': return '#f59e0b';   // oranssi – omakotitalo
+      case 'terrace': return '#fbbf24';              // keltainen – rivitalo
+      case 'garage':
+      case 'garages':
+      case 'carport': return '#9ca3af';              // harmaa – autotalli
+      case 'construction': return '#f97316';         // oranssi – rakenteilla
+      case 'office':
+      case 'commercial':
+      case 'retail':
+      case 'supermarket': return '#0d9488';          // vihreä – toimisto/kauppa
+      case 'school':
+      case 'kindergarten': return '#8b5cf6';         // violetti – koulu/päiväkoti
+      default: return '#d1d5db';                     // vaalea – muu/tuntematon
+    }
   }
 
-  /* Leaflet-selite tilastoruudukkoväritykselle */
-  function _buildLegend(maxPop, year) {
+  /* Rakennustyyppi suomeksi */
+  function _buildingLabel(type) {
+    const m = {
+      apartments: 'Kerrostalo', flat: 'Kerrostalo',
+      residential: 'Asuinrakennus',
+      house: 'Omakotitalo', detached: 'Omakotitalo',
+      semidetached_house: 'Paritalo',
+      terrace: 'Rivitalo',
+      garage: 'Autotalli', garages: 'Autotallit', carport: 'Autokatos',
+      construction: 'Rakenteilla',
+      office: 'Toimisto', commercial: 'Liike', retail: 'Myymälä',
+      supermarket: 'Kauppa',
+      school: 'Koulu', kindergarten: 'Päiväkoti',
+    };
+    return m[type] ?? 'Muu rakennus';
+  }
+
+  /* Leaflet-selite rakennustyypeille */
+  function _buildLegend() {
     if (_legend) { _legend.remove(); _legend = null; }
     const ctrl = L.control({ position: 'bottomright' });
     ctrl.onAdd = () => {
-      const div   = L.DomUtil.create('div', 'grid-legend');
-      const label = '1 km × 1 km';
-      const rows  = [1, 0.75, 0.5, 0.25, 0].map(t => {
-        const v   = Math.round(t * maxPop);
-        const col = _cellColor(v, maxPop) ?? '#cccccc';
-        return `<div class="grid-legend-row"><span class="grid-legend-swatch" style="background:${col};opacity:${v > 0 ? 0.80 : 0.10}"></span><span>${v.toLocaleString('fi-FI')}</span></div>`;
-      }).join('');
-      div.innerHTML = `<div class="grid-legend-title">as. / ruutu<br><em>${year} · ${label}</em></div>${rows}`;
+      const div = L.DomUtil.create('div', 'grid-legend');
+      const entries = [
+        ['apartments',   'Kerrostalo'],
+        ['house',        'Omakotitalo'],
+        ['terrace',      'Rivitalo'],
+        ['garage',       'Autotalli'],
+        ['office',       'Toimisto/kauppa'],
+        ['school',       'Koulu/päiväkoti'],
+        ['construction', 'Rakenteilla'],
+        ['yes',          'Muu rakennus'],
+      ];
+      const rows = entries.map(([type, label]) =>
+        `<div class="grid-legend-row"><span class="grid-legend-swatch" style="background:${_buildingColor(type)};opacity:.80"></span><span>${label}</span></div>`
+      ).join('');
+      div.innerHTML = `<div class="grid-legend-title">Rakennukset (OSM)</div>${rows}`;
       return div;
     };
     _legend = ctrl;
@@ -140,35 +180,40 @@ const MapModule = (() => {
 
       const bounds = L.geoJSON(geojson).getBounds();
 
-      /* 1. Tilastoruudut ensin (tulevat kartan alemmalle tasolle) */
-      const grid = await _fetchGridData(bounds);
-      if (grid) {
-        const { gj, year: gy } = grid;
-        const pops   = gj.features.map(f => f.properties.vaesto ?? 0);
-        const maxPop = Math.max(...pops, 1);
+      /* 1. OSM-rakennukset ensin (kartan alemmalle tasolle) */
+      let buildings = null;
+      try {
+        buildings = await _fetchBuildings(bounds);
+      } catch (bErr) {
+        console.warn('MapModule: rakennushaku epäonnistui –', bErr.message);
+      }
 
-        _gridLayer = L.geoJSON(gj, {
+      if (buildings?.features?.length) {
+        _gridLayer = L.geoJSON(buildings, {
           style: feature => {
-            const pop   = feature.properties.vaesto ?? 0;
-            const color = _cellColor(pop, maxPop);
+            const type = feature.properties.building ?? 'yes';
             return {
-              color:       '#666',
-              weight:      0.5,
-              fillColor:   color ?? '#cccccc',
-              fillOpacity: color ? 0.80 : 0.10,
+              color:       '#555',
+              weight:      0.4,
+              fillColor:   _buildingColor(type),
+              fillOpacity: 0.75,
             };
           },
           onEachFeature: (feature, layer) => {
-            const pop = feature.properties.vaesto ?? 0;
+            const p    = feature.properties;
+            const type = p.building ?? 'yes';
+            const name = p.name ? `<br><small>${p.name}</small>` : '';
+            const addr = p['addr:street']
+              ? `<br><small>${p['addr:street']}${p['addr:housenumber'] ? ' ' + p['addr:housenumber'] : ''}</small>`
+              : '';
             layer.bindTooltip(
-              `<strong>${pop > 0 ? pop.toLocaleString('fi-FI') + '\u00a0as.' : '&lt;\u00a03 as. (suojattu)'}</strong>` +
-              `<br><small>1 km × 1 km · ${gy}</small>`,
+              `<strong>${_buildingLabel(type)}</strong>${name}${addr}`,
               { sticky: true, direction: 'top' }
             );
           },
         }).addTo(_map);
 
-        _buildLegend(maxPop, gy).addTo(_map);
+        _buildLegend().addTo(_map);
       }
 
       /* 2. Postinumerorajaus päällimmäiseksi */
@@ -178,7 +223,7 @@ const MapModule = (() => {
           weight:      2.5,
           opacity:     1,
           fillColor:   '#003580',
-          fillOpacity: grid ? 0 : 0.08,
+          fillOpacity: buildings?.features?.length ? 0 : 0.08,
         },
         onEachFeature: (_feature, layer) => {
           layer.on('click', e => {
