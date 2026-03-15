@@ -14,9 +14,6 @@ const CONFIG = Object.freeze({
   WFS_LAYER:     'postialue:pno',
   WFS_FIELD:     'posti_alue',         // kenttä, johon postinumero suodatetaan
 
-  /* PAAVO – PxWeb REST API */
-  PAAVO_URL: 'https://pxdata.stat.fi/PxWeb/api/v1/fi/Postinumeroalueittainen_avoin_tieto/uusin/paavo_pxt_12f7.px',
-
   /* Näytettävät muuttujat ja niiden suomenkieliset nimet
      Kaikkia ei välttämättä löydy joka taulusta – puuttuva data käsitellään null:ina */
   VAR_LABELS: {
