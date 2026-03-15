@@ -4,7 +4,8 @@
 (async () => {
   /* ── Tilaobjekti ── */
   const state = { years: [], selectedYear: null };
-  let _gridInitialized = false;
+  let _gridInitialized     = false;
+  let _liikuntaInitialized = false;
 
   /* ── DOM-viitteet ── */
   const loadingOverlay = document.getElementById('loading-overlay');
@@ -136,6 +137,13 @@
         }
         if (tab === 'grid') {
           requestAnimationFrame(() => GridMap.invalidateSize());
+        }
+        if (tab === 'liikunta' && !_liikuntaInitialized) {
+          _liikuntaInitialized = true;
+          LiikuntaMap.init(MapModule.getBounds(), MapModule.getBoundaryFeature());
+        }
+        if (tab === 'liikunta') {
+          requestAnimationFrame(() => LiikuntaMap.invalidateSize());
         }
       });
     });

@@ -83,6 +83,7 @@
   <nav class="tab-nav" aria-label="Näkymävalinnat">
     <button class="tab-btn active" data-tab="paavo">Alue &amp; Tilastot</button>
     <button class="tab-btn" data-tab="grid">Väestöruudukko 1&nbsp;km²</button>
+    <button class="tab-btn" data-tab="liikunta">Liikuntapaikat</button>
   </nav>
 
   <!-- ========== TAB: PAAVO ========== -->
@@ -211,6 +212,27 @@
     </div>
   </div><!-- /tab-grid -->
 
+  <!-- ========== TAB: LIIKUNTAPAIKAT ========== -->
+  <div id="tab-liikunta" class="tab-panel">
+    <div class="grid-layout">
+      <div class="grid-map-panel">
+        <div id="liikunta-map"></div>
+      </div>
+      <aside class="grid-ctrl liikunta-ctrl">
+        <div class="ctrl-section">
+          <div class="ctrl-section-title">Liikuntapaikat</div>
+          <div id="liikunta-cats"><p class="stats-empty">Avaa välilehti ladataksesi data.</p></div>
+        </div>
+        <div class="liikunta-list-wrap">
+          <div id="liikunta-list"></div>
+        </div>
+        <div class="ctrl-attribution">
+          LIPAS / Jyväskylän yliopisto, CC BY 4.0
+        </div>
+      </aside>
+    </div>
+  </div><!-- /tab-liikunta -->
+
   <!-- ========== FOOTER ========== -->
   <footer class="site-footer">
     <p>
@@ -230,6 +252,7 @@
   <script src="js/map.js"></script>
   <script src="js/charts.js"></script>
   <script src="js/gridmap.js"></script>
+  <script src="js/liikunta.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

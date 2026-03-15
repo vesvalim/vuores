@@ -556,3 +556,71 @@ h3 {
   .tab-btn { padding: .55rem .8rem; font-size: .82rem; }
   .tab-nav { padding: 0 .75rem; }
 }
+
+/* ═════════════════════════════════════════════
+   LIIKUNTAPAIKAT
+   ═════════════════════════════════════════════ */
+/* Override: sisäinen scroll paikkalistan kohdalla */
+.liikunta-ctrl { overflow: hidden; }
+
+.liikunta-list-wrap {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 0 0 .5rem;
+}
+
+/* Kategoriasuodattimet */
+.liikunta-total {
+  font-size: .8rem;
+  color: var(--c-text-muted);
+  margin: 0 0 .45rem;
+}
+.liikunta-cat-item {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .2rem 0;
+  cursor: pointer;
+  font-size: .82rem;
+  user-select: none;
+}
+.liikunta-cat-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.liikunta-cat-label { flex: 1; }
+.liikunta-cat-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text-muted);
+  font-size: .74rem;
+}
+
+/* Paikkalista */
+.liikunta-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.liikunta-list-item {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .3rem .45rem;
+  padding: .3rem .25rem;
+  border-bottom: 1px solid var(--c-border);
+  cursor: pointer;
+  font-size: .8rem;
+  transition: background .1s;
+}
+.liikunta-list-item:hover { background: var(--c-surface); }
+.liikunta-list-name { font-weight: 500; }
+.liikunta-list-type {
+  color: var(--c-text-muted);
+  font-size: .71rem;
+  flex-basis: 100%;
+  padding-left: 1.1rem;
+}
