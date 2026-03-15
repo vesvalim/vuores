@@ -245,6 +245,10 @@ const GridMap = (() => {
     };
     _legendControl.addTo(_map);
 
+    /* Päivitä koko heti kartan luomisen jälkeen */
+    _map.invalidateSize();
+    setTimeout(() => _map.invalidateSize(), 200);
+
     try {
       const bounds = llBounds ?? _boundaryLayer?.getBounds() ?? _map.getBounds();
       const res = await fetch(_buildWfsUrl(bounds));

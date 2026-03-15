@@ -136,14 +136,14 @@
           GridMap.init(MapModule.getBounds(), MapModule.getBoundaryFeature());
         }
         if (tab === 'grid') {
-          requestAnimationFrame(() => GridMap.invalidateSize());
+          setTimeout(() => GridMap.invalidateSize(), 300);
         }
         if (tab === 'liikunta' && !_liikuntaInitialized) {
           _liikuntaInitialized = true;
           LiikuntaMap.init(MapModule.getBounds(), MapModule.getBoundaryFeature());
         }
         if (tab === 'liikunta') {
-          requestAnimationFrame(() => LiikuntaMap.invalidateSize());
+          setTimeout(() => LiikuntaMap.invalidateSize(), 300);
         }
       });
     });

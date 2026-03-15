@@ -211,6 +211,10 @@ const LiikuntaMap = (() => {
       _catLayers[c.key] = L.layerGroup().addTo(_map);
     });
 
+    /* Kartta on nyt näkyvissä – päivitä koko heti ja pienen viiveen jälkeen */
+    _map.invalidateSize();
+    setTimeout(() => _map.invalidateSize(), 200);
+
     try {
       const bounds = llBounds ?? _borderLayer?.getBounds() ?? _map.getBounds();
       const res    = await fetch(_buildUrl(bounds));
