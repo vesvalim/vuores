@@ -106,29 +106,28 @@ const PaavoDB = (() => {
       throw new Error(`PAAVO: postinumerolle ${CONFIG.POSTAL_CODE} ei löytynyt dataa.`);
     }
 
-    /* Parsitaan sarakkeiden järjestys */
-    const keyCols = (result.columns ?? []).filter(c => c.type !== 'm');
-    const yearIdx = keyCols.findIndex(c => c.code === dims.year.code);
-    const varIdx  = dims.data ? keyCols.findIndex(c => c.code === dims.data.code) : -1;
+    /* Parsitaan sarakkeiden järjestys.
+       PxWeb palauttaa datan leveässä muodossa: key = [alue, vuosi],
+       ja jokainen muuttuja (type "c") on oma sarakkeensa values-taulukossa. */
+    const allCols    = result.columns ?? [];
+    const keyCols    = allCols.filter(c => c.type === 'd' || c.type === 't');
+    const valueCols  = allCols.filter(c => c.type === 'c');
+    const yearKeyIdx = keyCols.findIndex(c => c.code === dims.year.code);
 
-    console.info('PAAVO: columns –', keyCols.map(c => c.code).join(', '),
-                 '| yearIdx=', yearIdx, 'varIdx=', varIdx);
-    console.info('PAAVO: ensimmäisiä rivejä –', JSON.stringify(result.data.slice(0, 3)));
+    console.info('PAAVO: keyCols –', keyCols.map(c => c.code).join(', '),
+                 '| valueCols –', valueCols.length, 'kpl',
+                 '| yearKeyIdx=', yearKeyIdx);
+    console.info('PAAVO: ensimmäisiä rivejä –', JSON.stringify(result.data.slice(0, 2)));
 
     for (const row of result.data) {
-      const rawYear = String(row.key[yearIdx] ?? '');
-      const year    = rawYear.trim().split(' ')[0];  // "2024 x" → "2024"
-
-      let varCode;
-      if (varIdx >= 0) {
-        varCode = row.key[varIdx];
-      } else {
-        /* Jos muuttujadimensiota ei ole omana sarakkeenaan, käytetään muuta key-arvoa */
-        varCode = row.key.find((k, i) => i !== yearIdx) ?? 'unknown';
-      }
+      const rawYear = String(row.key[yearKeyIdx] ?? '');
+      const year    = rawYear.trim().split(' ')[0];
 
       if (!_data[year]) _data[year] = {};
-      _data[year][varCode] = _toNum(row.values[0]);
+
+      for (let i = 0; i < valueCols.length; i++) {
+        _data[year][valueCols[i].code] = _toNum(row.values[i]);
+      }
     }
 
     console.info(`PAAVO: ladattu ${Object.keys(_data).length} vuoden data.`);
