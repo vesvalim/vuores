@@ -215,7 +215,17 @@ const LiikuntaMap = (() => {
       const bounds = llBounds ?? _borderLayer?.getBounds() ?? _map.getBounds();
       const res    = await fetch(_buildUrl(bounds));
       if (!res.ok) throw new Error(`LIPAS WFS HTTP ${res.status}`);
-      const data = await res.json();
+
+      /* Lue tekstitä ensin – palvelin saattaa palauttaa XML-virhettä JSONin sijaan */
+      const text = await res.text();
+      if (text.trimStart().startsWith('<')) {
+        const m = text.match(/<(?:ows:)?ExceptionText[^>]*>([^<]+)</);
+        const hint = m ? m[1].trim()
+          : 'Palvelin palautti XML:ää (kerrosnimi virheellinen? Tarkista LIPAS_WFS_LAYER config.js:stä)';
+        console.error('LiikuntaMap XML-vastaus:', text.slice(0, 400));
+        throw new Error(hint);
+      }
+      const data = JSON.parse(text);
 
       /* Normalisoi property-avaimet pieniksi */
       const norm = f => ({
